@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#f5c26b">
+  <meta name="description" content="究極のクリッカーゲーム - クッキーを焼いて帝国を築こう！">
+  <title>🍪 クッキークリッカー</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍪</text></svg>">
+</head>
+<body data-theme="dark">
+  <div id="app" class="app">
+    <!-- ローディング画面 -->
+    <div id="loading-screen" class="loading-screen">
+      <div class="loading-content">
+        <div class="loading-cookie">🍪</div>
+        <h1>クッキークリッカー</h1>
+        <div class="loading-bar"><div class="loading-progress"></div></div>
+        <p class="loading-tip">ヒント: ゴールデンクッキーを見逃すな！</p>
+      </div>
+    </div>
+
+    <!-- チュートリアル -->
+    <div id="tutorial-overlay" class="tutorial-overlay hidden">
+      <div class="tutorial-box">
+        <div class="tutorial-step" data-step="1">
+          <h2>🍪 ようこそ！</h2>
+          <p>クッキーをクリックして、クッキー帝国を築こう！</p>
+          <button class="btn-tutorial-next">次へ →</button>
+        </div>
+        <div class="tutorial-step hidden" data-step="2">
+          <h2>🏠 建物を買おう</h2>
+          <p>建物を購入すると、自動でクッキーが生産されるよ。</p>
+          <button class="btn-tutorial-next">次へ →</button>
+        </div>
+        <div class="tutorial-step hidden" data-step="3">
+          <h2>⬆️ アップグレード</h2>
+          <p>アップグレードで生産効率をアップ！</p>
+          <button class="btn-tutorial-next">次へ →</button>
+        </div>
+        <div class="tutorial-step hidden" data-step="4">
+          <h2>🌟 ゴールデンクッキー</h2>
+          <p>時々現れる金色のクッキーをクリックすると特別なボーナス！</p>
+          <button class="btn-tutorial-next">次へ →</button>
+        </div>
+        <div class="tutorial-step hidden" data-step="5">
+          <h2>🐉 ドラゴンを育てよう</h2>
+          <p>ドラゴンを育てると強力なボーナスが得られる！</p>
+          <button class="btn-tutorial-next">ゲーム開始！</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 通知エリア -->
+    <div id="notifications"></div>
+    
+    <!-- ニュースティッカー -->
+    <div class="news-ticker">
+      <span class="news-label">📰 NEWS</span>
+      <div class="news-content"><span id="news-text"></span></div>
+    </div>
+
+    <!-- ヘッダー -->
+    <header class="header">
+      <div class="header-left">
+        <h1 class="game-title">🍪 クッキークリッカー</h1>
+        <div class="prestige-info" id="prestige-info">
+          <span class="prestige-chips">✨ <span id="heavenly-chips">0</span></span>
+          <span class="prestige-mult">x<span id="prestige-mult">1.00</span></span>
+        </div>
+      </div>
+      <div class="header-center">
+        <div class="cookie-display">
+          <div class="cookie-count" id="cookies">0</div>
+          <div class="cookie-label">クッキー</div>
+        </div>
+        <div class="cps-display">
+          <span>毎秒: <strong id="cps">0</strong></span>
+          <span class="separator">|</span>
+          <span>クリック: <strong id="click-value">1</strong></span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="combo-display" id="combo-display">
+          <span class="combo-count">x<span id="combo-count">1</span></span>
+          <div class="combo-bar"><div class="combo-progress" id="combo-progress"></div></div>
+        </div>
+        <button id="btn-settings" class="icon-btn" title="設定">⚙️</button>
+        <button id="btn-music" class="icon-btn" title="BGM">🎵</button>
+        <button id="btn-sound" class="icon-btn" title="効果音">🔊</button>
+      </div>
+    </header>
+
+    <!-- エフェクトバッジ -->
+    <div id="effects" class="effects-bar"></div>
+
+    <!-- メインコンテンツ -->
+    <main class="main-container">
+      <!-- 左パネル: クッキーエリア -->
+      <section class="cookie-area">
+        <div class="cookie-wrapper">
+          <div id="golden-layer" class="golden-layer"></div>
+          <div id="shimmer-layer" class="shimmer-layer"></div>
+          <div id="float-layer" class="float-layer"></div>
+          <div id="particle-layer" class="particle-layer"></div>
+          
+          <button id="cookie-button" class="big-cookie">
+            <span class="cookie-inner">🍪</span>
+            <div class="cookie-shine"></div>
+          </button>
+          
+          <div class="cookie-info">
+            <p id="cookie-per-click">クリックで <strong>1</strong> クッキー</p>
+          </div>
+        </div>
+        
+        <!-- ドラゴンエリア -->
+        <div class="dragon-area" id="dragon-area">
+          <div class="dragon-display">
+            <span class="dragon-emoji" id="dragon-emoji">🥒</span>
+            <div class="dragon-info">
+              <span class="dragon-name" id="dragon-name">クリッキー（卵）</span>
+              <span class="dragon-level">Lv.<span id="dragon-level">0</span></span>
+            </div>
+          </div>
+          <button id="btn-dragon" class="btn-dragon">育成</button>
+        </div>
+
+        <!-- スキルエリア -->
+        <div class="skills-area" id="skills-container">
+          <!-- スキルボタンはJSで動的生成 -->
+        </div>
+
+        <!-- ミニゲームエリア -->
+        <div class="minigame-area" id="minigame-area">
+          <button id="btn-treasure" class="btn-treasure">📦 宝箱 <span id="treasure-count">0</span></button>
+          <button id="btn-roulette" class="btn-roulette">🎰 ルーレット <span id="spin-count">3</span></button>
+          <button id="btn-garden" class="btn-garden">🌱 庭園</button>
+          <button id="btn-milestones" class="btn-milestones">🏆 目標</button>
+          <button id="btn-challenge" class="btn-challenge">⚡ 挑戦</button>
+        </div>
+
+        <!-- アクティブチャレンジ表示 -->
+        <div id="active-challenge" class="active-challenge hidden">
+          <!-- チャレンジ進行表示 -->
+        </div>
+      </section>
+
+      <!-- 右パネル: タブパネル -->
+      <section class="panel-area">
+        <nav class="tabs">
+          <button class="tab-btn active" data-tab="buildings">🏠 建物</button>
+          <button class="tab-btn" data-tab="upgrades">⬆️ 強化</button>
+          <button class="tab-btn" data-tab="achievements">🏆 実績</button>
+          <button class="tab-btn" data-tab="prestige">✨ 転生</button>
+          <button class="tab-btn" data-tab="stats">📊 統計</button>
+        </nav>
+
+        <div class="tab-panels">
+          <!-- 建物タブ -->
+          <div id="tab-buildings" class="tab-content active">
+            <div class="buildings-header">
+              <span>建物</span>
+              <div class="buy-amount">
+                <button class="buy-amt-btn active" data-amount="1">x1</button>
+                <button class="buy-amt-btn" data-amount="10">x10</button>
+                <button class="buy-amt-btn" data-amount="100">x100</button>
+                <button class="buy-amt-btn" data-amount="max">MAX</button>
+              </div>
+            </div>
+            <div id="buildings" class="buildings-list"></div>
+          </div>
+
+          <!-- 強化タブ -->
+          <div id="tab-upgrades" class="tab-content">
+            <h3>🛒 購入可能</h3>
+            <div id="upgrades" class="upgrades-grid"></div>
+            <h3>✅ 購入済み</h3>
+            <div id="owned-upgrades" class="owned-upgrades"></div>
+          </div>
+
+          <!-- 実績タブ -->
+          <div id="tab-achievements" class="tab-content">
+            <div class="achievements-header">
+              <span>実績: <strong id="achievement-count">0</strong>/<span id="achievement-total">0</span></span>
+              <span>ボーナス: +<strong id="achievement-bonus">0</strong>%</span>
+            </div>
+            <div id="achievements-list" class="achievements-grid"></div>
+          </div>
+
+          <!-- 転生タブ -->
+          <div id="tab-prestige" class="tab-content">
+            <div class="prestige-panel">
+              <div class="prestige-header">
+                <h2>✨ 転生システム</h2>
+                <p>転生すると全てリセットされますが、永続的なボーナスを獲得できます。</p>
+              </div>
+              <div class="prestige-current">
+                <div class="prestige-stat">
+                  <span class="label">現在の天国チップ</span>
+                  <span class="value" id="current-chips">0</span>
+                </div>
+                <div class="prestige-stat">
+                  <span class="label">現在の倍率</span>
+                  <span class="value" id="current-mult">x1.00</span>
+                </div>
+              </div>
+              <div class="prestige-preview">
+                <div class="prestige-stat highlight">
+                  <span class="label">転生で獲得</span>
+                  <span class="value" id="prestige-gain">+0</span>
+                </div>
+                <div class="prestige-stat">
+                  <span class="label">転生後の倍率</span>
+                  <span class="value" id="new-mult">x1.00</span>
+                </div>
+              </div>
+              <button id="btn-prestige" class="btn-prestige" disabled>
+                ✨ 転生する
+              </button>
+              <p class="prestige-hint">1兆クッキー以上獲得すると転生できます</p>
+              
+              <h3>🎁 天国アップグレード</h3>
+              <div id="heavenly-upgrades" class="heavenly-upgrades"></div>
+            </div>
+          </div>
+
+          <!-- 統計タブ -->
+          <div id="tab-stats" class="tab-content">
+            <div id="stats" class="stats-list"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- フッター -->
+    <footer class="footer">
+      <div class="footer-controls">
+        <button id="save" class="ctrl-btn">💾 セーブ</button>
+        <button id="export" class="ctrl-btn">📤 出力</button>
+        <button id="import" class="ctrl-btn">📥 読込</button>
+        <button id="reset" class="ctrl-btn danger">🗑️ リセット</button>
+      </div>
+      <div class="footer-info">
+        <span id="last-save">最終セーブ: --</span>
+        <span id="version">v2.0</span>
+      </div>
+    </footer>
+
+    <!-- 設定モーダル -->
+    <div id="settings-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>⚙️ 設定</h2>
+          <button class="modal-close" data-modal="settings-modal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="setting-group">
+            <label>テーマ</label>
+            <div class="theme-buttons">
+              <button class="theme-btn" data-theme="dark">🌙 ダーク</button>
+              <button class="theme-btn" data-theme="light">☀️ ライト</button>
+              <button class="theme-btn" data-theme="cookie">🍪 クッキー</button>
+              <button class="theme-btn" data-theme="neon">💜 ネオン</button>
+            </div>
+          </div>
+          <div class="setting-group">
+            <label>サウンド</label>
+            <div class="setting-row">
+              <span>BGM</span>
+              <input type="range" id="bgm-volume" min="0" max="100" value="30">
+              <span id="bgm-volume-label">30%</span>
+            </div>
+            <div class="setting-row">
+              <span>効果音</span>
+              <input type="range" id="sfx-volume" min="0" max="100" value="50">
+              <span id="sfx-volume-label">50%</span>
+            </div>
+          </div>
+          <div class="setting-group">
+            <label>表示</label>
+            <div class="setting-row">
+              <span>数字表記</span>
+              <select id="number-format">
+                <option value="short">短縮 (1.5M)</option>
+                <option value="scientific">科学 (1.5e6)</option>
+                <option value="full">完全 (1,500,000)</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <span>パーティクル</span>
+              <label class="toggle">
+                <input type="checkbox" id="particles-enabled" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="setting-row">
+              <span>画面の揺れ</span>
+              <label class="toggle">
+                <input type="checkbox" id="screenshake-enabled" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="setting-group">
+            <label>ゲーム</label>
+            <div class="setting-row">
+              <span>オートセーブ間隔</span>
+              <select id="autosave-interval">
+                <option value="30">30秒</option>
+                <option value="60">1分</option>
+                <option value="300">5分</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ドラゴンモーダル -->
+    <div id="dragon-modal" class="modal hidden">
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h2>🐉 ドラゴン育成</h2>
+          <button class="modal-close" data-modal="dragon-modal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="dragon-main">
+            <div class="dragon-avatar" id="dragon-avatar">🥚</div>
+            <div class="dragon-details">
+              <h3 id="dragon-modal-name">クリッキー</h3>
+              <p>レベル: <strong id="dragon-modal-level">0</strong></p>
+              <p id="dragon-bonus-text">ボーナス: なし</p>
+            </div>
+          </div>
+          <div class="dragon-auras">
+            <h4>🔮 ドラゴンオーラ</h4>
+            <div id="dragon-auras-list" class="auras-list"></div>
+          </div>
+          <div class="dragon-feed">
+            <p>育成コスト: <strong id="dragon-feed-cost">100</strong> クッキー</p>
+            <button id="btn-feed-dragon" class="btn-feed">🍪 育成する</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ミニゲームモーダル -->
+    <div id="minigame-modal" class="modal hidden">
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h2>🎮 ミニゲーム</h2>
+          <button class="modal-close" data-modal="minigame-modal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="minigame-select">
+            <button class="minigame-option" data-game="slots">🎰 スロット</button>
+            <button class="minigame-option" data-game="memory">🧠 神経衰弱</button>
+            <button class="minigame-option" data-game="click-race">⚡ 連打チャレンジ</button>
+          </div>
+          <div id="minigame-area-content" class="minigame-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 宝箱モーダル -->
+    <div id="treasure-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>📦 宝箱</h2>
+          <button class="modal-close" data-modal="treasure-modal">×</button>
+        </div>
+        <div class="modal-body treasure-body">
+          <div class="treasure-display">
+            <div class="treasure-box" id="treasure-box">📦</div>
+            <p>所持数: <span id="treasure-modal-count">0</span> 個</p>
+          </div>
+          <button id="btn-open-treasure" class="btn-open-treasure">🔓 開ける！</button>
+          <div id="treasure-result" class="treasure-result"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ルーレットモーダル -->
+    <div id="roulette-modal" class="modal hidden">
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h2>🎰 ラッキールーレット</h2>
+          <button class="modal-close" data-modal="roulette-modal">×</button>
+        </div>
+        <div class="modal-body roulette-body">
+          <div class="roulette-container">
+            <div class="roulette-pointer">▼</div>
+            <div class="roulette-wheel" id="roulette-wheel">
+              <!-- セグメントはCSSで描画 -->
+            </div>
+          </div>
+          <p class="spin-info">スピンチケット: <span id="spin-modal-count">3</span> 枚</p>
+          <button id="btn-spin-roulette" class="btn-spin-roulette">🎰 スピン！</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- デイリーボーナスモーダル -->
+    <div id="daily-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>📅 デイリーボーナス</h2>
+          <button class="modal-close" data-modal="daily-modal">×</button>
+        </div>
+        <div class="modal-body">
+          <div id="daily-content" class="daily-grid">
+            <!-- デイリーコンテンツはJSで生成 -->
+          </div>
+          <button id="btn-claim-daily" class="btn-claim-daily">🎁 受け取る！</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 庭園モーダル -->
+    <div id="garden-modal" class="modal hidden">
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h2>🌱 クッキーガーデン</h2>
+          <button class="modal-close" data-modal="garden-modal">×</button>
+        </div>
+        <div class="modal-body garden-body">
+          <p class="garden-desc">植物を育てて特別な報酬を獲得しよう！</p>
+          <div class="garden-plots" id="garden-plots">
+            <!-- 区画はJSで生成 -->
+          </div>
+          <h3>🌿 種を選択</h3>
+          <div class="garden-plants" id="garden-plants">
+            <!-- 植物選択はJSで生成 -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- マイルストーンモーダル -->
+    <div id="milestones-modal" class="modal hidden">
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h2>🏆 マイルストーン</h2>
+          <button class="modal-close" data-modal="milestones-modal">×</button>
+        </div>
+        <div class="modal-body">
+          <p class="milestones-desc">目標を達成して報酬を獲得しよう！</p>
+          <div class="milestones-list" id="milestones-list">
+            <!-- マイルストーンはJSで生成 -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- チャレンジモーダル -->
+    <div id="challenge-modal" class="modal hidden">
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h2>⚡ チャレンジ</h2>
+          <button class="modal-close" data-modal="challenge-modal">×</button>
+        </div>
+        <div class="modal-body">
+          <p class="challenge-desc">制限時間内に目標を達成せよ！</p>
+          <div class="challenge-list" id="challenge-list">
+            <!-- チャレンジはJSで生成 -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
